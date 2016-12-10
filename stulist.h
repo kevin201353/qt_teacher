@@ -2,6 +2,15 @@
 #define STULIST_H
 
 #include <QWidget>
+#include <QPoint>
+#include <QMouseEvent>
+#include <QString>
+#include <QNetworkInterface>
+#include <QList>
+#include <QFile>
+#include "streamparsexml.h"
+#include "thread.h"
+#include <QObject>
 
 namespace Ui {
 class stulist;
@@ -14,9 +23,32 @@ class stulist : public QWidget
 public:
     explicit stulist(QWidget *parent = 0);
     ~stulist();
-
+protected:
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+public:
+    void settype(short ntype); //0:举手列表  1:学生列表
+    inline void setmac(const QString mac) {
+        m_szMac = mac;
+    };
+    inline void setaddress(QString addr) {
+        m_addrserver = addr;
+    };
+    QObject * GetList();
+    inline void setWidget(QWidget *widget){
+        m_pWidget = widget;
+    }
+private slots:
+    void exit_widget();
 private:
     Ui::stulist *ui;
+    QPoint  m_LastMousePosition;
+    bool  m_moving;
+    QString m_szMac;
+    int m_ntype;  //0:举手  1:学生
+    QString  m_addrserver;
+    QWidget *m_pWidget;
 };
 
 #endif // STULIST_H

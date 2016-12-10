@@ -14,22 +14,18 @@ class myHttp : public QObject
 public:
     myHttp();
     ~myHttp();
-    void SetUrlIP(QString IP)
-    {
-        m_strIP.clear();
-        m_strIP = "http://";
-        m_strIP += IP;
-    }
-    bool Post(QString url, const QString append);
+public:
+    bool Post(QString url, QString append);
     void GetData(QString &Buf);
     bool Get(QString url);
+public slots:
+    void replyFinished(QNetworkReply* reply); //用于处理响应返回的数据
 private:
     QNetworkAccessManager   *m_pNetManager;
-    QString m_strIP;
-private:
     QString m_XmlMessage;
     QEventLoop *m_peventLoop;
     QNetworkReply *m_preply;
+   // QNetworkRequest m_pRequst;
 };
 
 #endif // MYHTTP_H
