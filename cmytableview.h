@@ -1,0 +1,4 @@
+#ifndef CMYTABLEVIEW_H
+#define CMYTABLEVIEW_H
+
+#endif // CMYTABLEVIEW_H
