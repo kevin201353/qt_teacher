@@ -50,6 +50,7 @@ void Thread::SendMessage()
         QString szMac = m_msgList.at(1);
         szUrl += "?";
         szUrl += szMac;
+        writeLogFile(QtDebugMsg, szUrl);
         myHttp http;
         if (!http.Get(szUrl))
         //if (!http.Post(szUrl, szMac))
@@ -59,6 +60,11 @@ void Thread::SendMessage()
         http.GetData(g_xmldata);
         qDebug() << g_xmldata;
     }
+}
+
+void Thread::settype(QString skey, int ntype)
+{
+     m_ntype[skey] = ntype;
 }
 
 /***********************************************************************************************/
@@ -98,4 +104,9 @@ void DataThread::processdata()
         parsexml.readXml(g_xmldata);
         g_xmldata = "";
     }
+}
+
+void DataThread::settype(QString skey, int ntype)
+{
+    m_ntype[skey] = ntype;
 }

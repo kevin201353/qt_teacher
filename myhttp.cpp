@@ -1,6 +1,7 @@
 #include "myhttp.h"
 #include <QDebug>
 #include <QByteArray>
+#include "log.h"
 
 myHttp::myHttp()
 {
@@ -58,6 +59,7 @@ void myHttp::GetData(QString &Buf)
     m_peventLoop->exec();
     m_XmlMessage = m_preply->readAll();
     Buf = m_XmlMessage;
+    writeLogFile(QtDebugMsg, Buf);
     qDebug() << Buf;
 }
 

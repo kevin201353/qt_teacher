@@ -11,5 +11,6 @@
         <file>images/x.png</file>
         <file>images/list_demo.png</file>
         <file>images/handed_nor.png</file>
+        <file>images/list_demo_press.png</file>
     </qresource>
 </RCC>

@@ -51,7 +51,7 @@ Widget::Widget(QWidget *parent) :
     connect(ui->btn_student, SIGNAL(clicked(bool)), this, SLOT(on_stu_clicked()));
     connect(ui->btn_broadcast, SIGNAL(clicked(bool)), this, SLOT(on_demo_clicked()));
     //get host mac
-    m_strMac = getHostMacAddress();
+    m_strMac = getHostMacAddress().toLower();
     stulistWidget->setmac(m_strMac);
     stulistWidget->setaddress(SERVICE_ADDRESS);
     stulistWidget->setWidget(this);
@@ -64,12 +64,7 @@ Widget::Widget(QWidget *parent) :
     procesdata();
     stulistWidget->settype(0);
     g_mapObject["DataThread"] = m_pDataThread;
-    m_pthreadx2 = NULL;
     getclassinfo();
-    m_pDataThread2 = NULL;
-    m_pDataThread2 = new DataThread();
-    m_pDataThread2->settype(3);
-    m_pDataThread2->start();
 }
 
 Widget::~Widget()
@@ -91,18 +86,6 @@ Widget::~Widget()
     {
         delete stulistWidget;
         stulistWidget = NULL;
-    }
-    if (m_pthreadx2)
-    {
-        m_pthreadx2->stop();
-        delete m_pthreadx2;
-        m_pthreadx2 = NULL;
-    }
-    if (m_pDataThread2)
-    {
-        m_pDataThread2->stop();
-        delete m_pDataThread2;
-        m_pDataThread2 = NULL;
     }
     delete ui;
 }
@@ -180,6 +163,9 @@ void Widget::on_demo_clicked()
         {
             writeLogFile(QtDebugMsg, "teacher demo failed.");
         }
+        QString strTmp;
+        http->GetData(strTmp);
+        writeLogFile(QtDebugMsg, strTmp);
         delete http;
         http = NULL;
     }
@@ -187,25 +173,36 @@ void Widget::on_demo_clicked()
 
 void Widget::getclassinfo()
 {
-    QList<QString> msglist;
-    QString str = HTTP_URL_HEAD;
-    str += SERVICE_ADDRESS;
-    str += "/service/desktops/classinfo";
-    msglist.append(str);
-    m_strMac = "00:1a:4a:16:01:56";
+    QString url = HTTP_URL_HEAD;
+    url += SERVICE_ADDRESS;
+    url += "/service/desktops/classinfo";
+    //m_strMac = "00:1a:4a:16:01:57";
     QString data = "vmMac=";
     data += m_strMac;
-    msglist.append(data);  //MAC:38:2C:4A:B4:B6:F8
-    m_pthreadx2 = new Thread();
-    m_pthreadx2->settype(3);
-    m_pthreadx2->setMessage(msglist);
-    m_pthreadx2->start();
+    myHttp http;
+    QString strdeg = "getclassinfo : ";
+    strdeg += url;
+    strdeg += "------";
+    strdeg += data;
+    writeLogFile(QtDebugMsg, strdeg);
+    if (!http.Post(url, data))
+    {
+        writeLogFile(QtDebugMsg, "getclassinfo failed.");
+    }
+    QString strBuf;
+    http.GetData(strBuf);
+    StreamParseXml xmlparse;
+    xmlparse.readxmlclass(strBuf);
 }
 
 void Widget::setvmclass(QString str1, QString str2)
 {
-    ui->vm_name->setText(str1);
-    ui->class_room->setText(str2);
+    QString strVm = "桌面：";
+    QString strClass = "班级：";
+    strVm += str1;
+    strClass += str2;
+    ui->vm_name->setText(strVm);
+    ui->class_room->setText(strClass);
 }
 
 void Widget::SetNoticeMsg2(QString szMsg)
@@ -232,4 +229,3 @@ void Widget::NoticeMsg(QString szMsg)
     Notice notice;
     emit ShowNotice(szMsg);
 }
-

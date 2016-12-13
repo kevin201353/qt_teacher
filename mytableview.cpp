@@ -17,6 +17,7 @@ MyStuDelegate::MyStuDelegate(QObject *parent):
 {
     favouritePixmap[0] = QPixmap(":/images/handed_nor.png");
     favouritePixmap[1] = QPixmap(":/images/list_demo.png");
+    favouritePixmap[2] = QPixmap(":/images/list_demo_press.png");
     m_pdemoSize = NULL;
     m_pdemoSize = new struct XSize;
     m_ntype = 0;
@@ -39,13 +40,14 @@ void MyStuDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
     }
     if (index.column() == 1)
     {
-        sprintf(szTmp, "m_ntype = %d.\n", m_ntype);
-        writeLogFile(QtDebugMsg, szTmp);
+        //sprintf(szTmp, "m_ntype = %d.\n", m_ntype);
+        //writeLogFile(QtDebugMsg, szTmp);
         QRect rect = option.rect;
         int x = rect.x() + rect.width()/2 - favouritePixmap[m_ntype].width()/2;
         int y = rect.y() + rect.height()/2 - favouritePixmap[m_ntype].height()/2;
         SetDemoPixSize(x, y, favouritePixmap[m_ntype].width(), favouritePixmap[m_ntype].height());
-        painter->drawPixmap(x, y, favouritePixmap[m_ntype]);
+        QPixmap pixmap = ( m_bpress && (index.row() == m_row) && m_ntype == 1 )? favouritePixmap[2]:favouritePixmap[m_ntype];
+        painter->drawPixmap(x, y, pixmap);
     }
 }
 
@@ -64,14 +66,19 @@ void MyStuDelegate::GetDemoPixSize(struct XSize *psize)
 
 void MyStuDelegate::SetDemoPixSize(int x, int y, int width, int height) const
 {
-     sprintf(szTmp, "x = %d, y = %d, width = %d, height = %d .\n", x, y, width, height);
-     writeLogFile(QtDebugMsg, szTmp);
+     //sprintf(szTmp, "x = %d, y = %d, width = %d, height = %d .\n", x, y, width, height);
+     //writeLogFile(QtDebugMsg, szTmp);
      m_pdemoSize->x = x;
      m_pdemoSize->y = y;
      m_pdemoSize->width = width;
      m_pdemoSize->height = height;
 }
 
+void MyStuDelegate::setpress(bool bpres, int row)
+{
+    m_bpress = bpres;
+    m_row = row;
+}
 /*****************************************************************************************/
 //MyStandardItemModel
 MyStandardItemModel::MyStandardItemModel(QObject *parent):
@@ -86,15 +93,14 @@ MyStandardItemModel::~MyStandardItemModel()
 
 QVariant MyStandardItemModel::data(const QModelIndex &index, int role) const
 {
- //   int column = index.column();
-
+//     int column = index.column();
 //    if(role == Qt::DisplayRole && column == 0)
 //    {
 //        return tr("stu");
 //    }
-//    if (role == Qt::DecorationRole && column == 2)
+//    if (role == Qt::DecorationRole && column == 1)
 //    {
-//        return QIcon(":/images/list_demo.png");
+//        return QIcon(":/images/list_demo_press.png");
 //    }
 //    if(role == Qt::ToolTipRole && column == 0)
 //        return tr("love");
@@ -131,14 +137,14 @@ CMytableview::CMytableview(QWidget *parent):
     this->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->setSelectionBehavior(QAbstractItemView::SelectRows);
     this->setMouseTracking(true);//important
-    QScrollBar* pscroll = this->verticalScrollBar();
+//    QScrollBar* pscroll = this->verticalScrollBar();
     //pscroll->setMinimumWidth(10);
 
-    QRect rect;
-    rect = pscroll->geometry();
-    char szTmp[100] = {0};
-    sprintf(szTmp, "scroll width=%d, height=%d .\n", rect.width(), rect.height());
-    writeLogFile(QtDebugMsg, szTmp);
+//    QRect rect;
+//    rect = pscroll->geometry();
+//    char szTmp[100] = {0};
+//    sprintf(szTmp, "scroll width=%d, height=%d .\n", rect.width(), rect.height());
+//    writeLogFile(QtDebugMsg, szTmp);
     ncount = 0;
 }
 
@@ -148,7 +154,23 @@ CMytableview::~CMytableview()
 
 void CMytableview::mouseMoveEvent(QMouseEvent *event)
 {
-    QTableView::mouseMoveEvent(event);
+    const QPoint &p = event->pos();
+    QModelIndex modelIndex = indexAt(p);
+    int row = 0;
+    int col = 0;
+    if (modelIndex.isValid())
+    {
+        col = modelIndex.column();
+        row = modelIndex.row();
+        if (col == 1)
+        {
+            if (delegate != NULL)
+            {
+                delegate->setpress(true, row);
+            }
+        }
+    }
+   QTableView::mouseMoveEvent(event);
 }
 
 void CMytableview::mousePressEvent(QMouseEvent *event)
@@ -158,6 +180,9 @@ void CMytableview::mousePressEvent(QMouseEvent *event)
 
 void CMytableview::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (delegate == NULL)
+        return;
+
     if (delegate->GetType() == 1)
     {
         const QPoint &p = event->pos();
@@ -172,8 +197,8 @@ void CMytableview::mouseReleaseEvent(QMouseEvent *event)
             {
                 struct XSize size;
                 delegate->GetDemoPixSize(&size);
-                sprintf(szTmp, "size.x = %d, size.y = %d, size.width = %d, size.height = %d .\n", size.x, size.y, size.width, size.height);
-                writeLogFile(QtDebugMsg, szTmp);
+                //sprintf(szTmp, "size.x = %d, size.y = %d, size.width = %d, size.height = %d .\n", size.x, size.y, size.width, size.height);
+                //writeLogFile(QtDebugMsg, szTmp);
                 if ( (p.x() >= size.x - 2 && p.x() <= size.x - 2 + size.width) &&
                      (p.y() >= row * 30 + 4 && p.y() <= row * 30 + size.height - 4 ))
                 {
@@ -183,7 +208,7 @@ void CMytableview::mouseReleaseEvent(QMouseEvent *event)
                     g_Msg.val2 = row;
                     call_msg_back(msg_respose, g_Msg);
                 }
-            }
+            }//if col
         }
     }//if ( delegate->m_ntype == 1 )
     QTableView::mouseReleaseEvent(event);

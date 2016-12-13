@@ -75,21 +75,21 @@ void stulist::settype(short ntype)
     ui->stutableView->SetType(ntype);
     Thread * pthread = ((Widget *)m_pWidget)->GetThread();
     DataThread *pdataThread = ((Widget *)m_pWidget)->GetDataThread();
-    pthread->settype(ntype);
-    pdataThread->settype(ntype);
+    pthread->settype("stu", ntype);
+    pdataThread->settype("stu", ntype);
     QList<QString> msglist;
     QString str = HTTP_URL_HEAD;
     str += m_addrserver;
     if (ntype == 0)
     {
-        str += "/edu/service/classes/list_handupstu";
+        str += "/service/classes/list_handupstu";
         msglist.append(str);
     }else if (ntype == 1)
     {
-        str += "/edu/service/classes/list_stu";
+        str += "/service/classes/list_stu";
         msglist.append(str);
     }
-    m_szMac = "00:1a:4a:16:01:56";
+   // m_szMac = "00:1a:4a:16:01:57";
     QString data = "vmMac=";
     data += m_szMac;
     msglist.append(data);  //MAC:38:2C:4A:B4:B6:F8

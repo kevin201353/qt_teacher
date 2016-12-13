@@ -3,6 +3,7 @@
 #include <QXmlStreamReader>
 #include <QObject>
 #include "global.h"
+#include <QMap>
 
 class StreamParseXml
 {
@@ -11,8 +12,9 @@ public:
     ~StreamParseXml();
     int readXml(const QString xmlData);
     int readXml2(const QString filename);
-    inline void setType(int ntype){
-        m_ntype = ntype;
+    int readxmlclass(const QString xmlData);
+    inline void setType(QMap<QString, int> type){
+        m_ntype = type;
     };
     void noticeMsgWindow(StruInfo info);
     inline void setStop(bool bstop){
@@ -24,7 +26,7 @@ private:
     QString getAttribute(const QString &name);
 private:
     QXmlStreamReader *reader;
-    int m_ntype;  //0: 举手  1：学生
+    QMap<QString, int> m_ntype;  //0: 举手  1：学生
     bool  m_stop;
 };
 

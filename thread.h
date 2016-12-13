@@ -5,6 +5,8 @@
 #include <QList>
 #include <QObject>
 #include "streamparsexml.h"
+#include <QMap>
+#include <QString>
 
 class Thread : public QThread
 {
@@ -15,16 +17,14 @@ public:
 public:
     void stop();
     void setMessage(QList<QString> msglist);
-    inline void settype(int ntype){
-        m_ntype = ntype;
-    };
+    void settype(QString skey, int ntype);
 protected:
     void run();
     void SendMessage();
 private:
     QList<QString>  m_msgList;
     volatile bool m_stopped;
-    volatile int m_ntype;
+    QMap<QString, int> m_ntype;
 };
 
 class DataThread :  public QThread
@@ -38,14 +38,12 @@ signals:
 public:
     void stop();
     void processdata();
-    inline void settype(int ntype){
-        m_ntype = ntype;
-    };
+    void settype(QString skey, int ntype);
 protected:
     void run();
 private:
     volatile bool m_stopped;
-    volatile int m_ntype;
+    QMap<QString, int> m_ntype;
     StreamParseXml  parsexml;
 };
 

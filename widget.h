@@ -59,7 +59,5 @@ private:
     stulist     *stulistWidget;
     Thread   *m_pthread;
     DataThread *m_pDataThread;
-    Thread   *m_pthreadx2;
-    DataThread *m_pDataThread2;
 };
 #endif // WIDGET_H

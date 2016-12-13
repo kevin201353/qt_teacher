@@ -39,35 +39,9 @@ int StreamParseXml::readXml(const QString xmlData)
         {
             continue;
         }
-        //内部测试数据
-//        if (m_ntype == 3)
-//        {
-//            StruInfo info2;
-//            info2.apId="ddddd";
-//            info2.name="VM-10";
-//            info2.noSeat="class-1";
-//            noticeMsgWindow(info2);
-//        }
-        //end;
-
-        if (m_ntype == 0 || m_ntype == 1 || m_ntype == 2)
+        if (reader->isStartElement() && reader->name() == "desktopRoomAps")
         {
-            //test data
-            //if (nfirst == 1)
-//            {
-//                QString str="zhao";
-//                QString strTmp="A5-8";
-//                QString apId="1235678";
-//                StruInfo info;
-//                info.name = str;
-//                info.noSeat = strTmp;
-//                info.apId = apId;
-//                g_stu2List.append(info);
-//                noticeMsgWindow(info);
-//                nfirst = 2;
-//            }
-            //test end
-            if (reader->isStartElement() && reader->name() == "desktopRoomAps")
+            if (m_ntype["stu"] == 0 || m_ntype["stu"] == 1)
             {
                 QString apId = getValue("apId");
                 QString strTmp = getValue("dSeat");
@@ -115,19 +89,45 @@ int StreamParseXml::readXml(const QString xmlData)
                         noticeMsgWindow(info);
                     }
                 }//str == 1
-            }//if
-        }//m_ntype
-        if (m_ntype == 3)
+             }//if m_ntype
+        }//if
+    }//
+    if (reader->hasError())
+        qDebug() << reader->errorString();
+    reader->clear();
+    delete reader;
+    reader = NULL;
+    return 0;
+}
+
+int StreamParseXml::readxmlclass(const QString xmlData)
+{
+    reader = new QXmlStreamReader(xmlData);
+    while(!reader->atEnd() && !reader->hasError())
+    {
+        if (m_stop)
+           break;
+        QXmlStreamReader::TokenType token = reader->readNext();
+        if(token == QXmlStreamReader::StartDocument)
         {
+            continue;
+        }
+        if (reader->isStartElement() && reader->name() == "data")
+        {
+            QString className = getValue("className");
             QString desktopName = getValue("desktopName");
             QString roomName = getValue("roomName");
-            QString className = getValue("className");
             StruInfo info;
             info.apId = desktopName;
             info.name = roomName;
             info.noSeat = className;
+            ReportMsg msg;
+            msg.action = USER_MSG_CLASSINFO;
+            msg.str = info.apId;  //桌面名称
+            msg.strval = info.noSeat; //班级
+            call_msg_back(msg_respose, msg);
         }
-    }//
+    }
     if (reader->hasError())
         qDebug() << reader->errorString();
     reader->clear();
@@ -210,11 +210,11 @@ QString StreamParseXml::getValue(const QString &name)
 void StreamParseXml::noticeMsgWindow(StruInfo info)
 {
     ReportMsg msg;
-    if (m_ntype == 0 || m_ntype == 1)
+    if (m_ntype["stu"] == 0 || m_ntype["stu"] == 1)
     {
         msg.action = USER_MSG_DEALSTULIST;
-        msg.val1 = m_ntype;
-        if (m_ntype == 0)
+        msg.val1 = m_ntype["stu"];
+        if (m_ntype["stu"] == 0)
         {
             QString strTmp = info.name;
             strTmp += " - ";
@@ -223,12 +223,6 @@ void StreamParseXml::noticeMsgWindow(StruInfo info)
             DataThread *pthread = (DataThread *)g_mapObject["DataThread"];
             emit pthread->NoticeShow(strTmp);
         }
-    }
-    if (m_ntype == 3)
-    {
-        msg.action = USER_MSG_CLASSINFO;
-        msg.str = info.apId;  //桌面名称
-        msg.strval = info.noSeat; //班级
     }
     call_msg_back(msg_respose, msg);
 }

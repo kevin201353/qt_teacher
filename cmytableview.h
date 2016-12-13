@@ -23,10 +23,13 @@ public:
     inline int GetType() const {
         return m_ntype;
     };
+    void setpress(bool bpres, int row);
 private:
-    QPixmap favouritePixmap[2];
+    QPixmap favouritePixmap[3];
     struct XSize  *m_pdemoSize;
     int  m_ntype;
+    bool  m_bpress;
+    int   m_row;
 };
 
 class MyStandardItemModel : public QStandardItemModel
