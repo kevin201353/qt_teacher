@@ -15,6 +15,7 @@
 #include "stulist.h"
 #include "notice.h"
 #include "thread.h"
+#include <QList>
 
 
 namespace Ui {
@@ -59,5 +60,6 @@ private:
     stulist     *stulistWidget;
     Thread   *m_pthread;
     DataThread *m_pDataThread;
+    bool    m_bstart;
 };
 #endif // WIDGET_H

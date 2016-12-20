@@ -7,7 +7,11 @@
 #include "cmytableview.h"
 #include "widget.h"
 #include <QScrollBar>
+#include <QMutexLocker>
 
+extern QList<StruInfo> g_stu2List;
+extern QList<StruInfo> g_handupList;
+QMutex g_mutexlist;
 stulist::stulist(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::stulist)
@@ -20,8 +24,6 @@ stulist::stulist(QWidget *parent) :
                             "QPushButton:pressed{border-image: url(:/images/x.png);}");
     connect(ui->btnStuClose, SIGNAL(clicked(bool)), this, SLOT(exit_widget()));
     ui->stutableView->horizontalHeader()->hide();
-    ui->stutableView->setColumnWidth(0,  522);
-    ui->stutableView->setColumnWidth(1, 60);
     m_ntype = 0;
 }
 
@@ -73,6 +75,8 @@ void stulist::settype(short ntype)
     }
     m_ntype = ntype;
     ui->stutableView->SetType(ntype);
+    ui->stutableView->setColumnWidth(0,  522);
+    ui->stutableView->setColumnWidth(1, 60);
     Thread * pthread = ((Widget *)m_pWidget)->GetThread();
     DataThread *pdataThread = ((Widget *)m_pWidget)->GetDataThread();
     pthread->settype("stu", ntype);
@@ -89,7 +93,7 @@ void stulist::settype(short ntype)
         str += "/service/classes/list_stu";
         msglist.append(str);
     }
-   // m_szMac = "00:1a:4a:16:01:57";
+    m_szMac = "00:1a:4a:16:01:57";
     QString data = "vmMac=";
     data += m_szMac;
     msglist.append(data);  //MAC:38:2C:4A:B4:B6:F8

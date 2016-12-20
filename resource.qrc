@@ -12,5 +12,7 @@
         <file>images/list_demo.png</file>
         <file>images/handed_nor.png</file>
         <file>images/list_demo_press.png</file>
+        <file>images/demo_stop_nor.png</file>
+        <file>images/demo_stop_press.png</file>
     </qresource>
 </RCC>

@@ -124,32 +124,44 @@ QVariant MyStandardItemModel::headerData(int section, Qt::Orientation orientatio
 CMytableview::CMytableview(QWidget *parent):
     QTableView(parent)
 {
+    delegate = NULL;
+    model = NULL;
+    modelhandup = NULL;
     delegate = new MyStuDelegate;
     model = new MyStandardItemModel;
-    model->setRowCount(6);
+    modelhandup = new MyStandardItemModel;
+    //model->setRowCount(6);
     model->setColumnCount(2);
-
-    this->setModel(model);
+    //modelhandup->setRowCount(6);
+    modelhandup->setColumnCount(2);
+    ncount = 0;
     this->setItemDelegate(delegate);
-
     this->resizeColumnsToContents();
     this->resizeRowsToContents();
     this->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->setSelectionBehavior(QAbstractItemView::SelectRows);
     this->setMouseTracking(true);//important
-//    QScrollBar* pscroll = this->verticalScrollBar();
-    //pscroll->setMinimumWidth(10);
-
-//    QRect rect;
-//    rect = pscroll->geometry();
-//    char szTmp[100] = {0};
-//    sprintf(szTmp, "scroll width=%d, height=%d .\n", rect.width(), rect.height());
-//    writeLogFile(QtDebugMsg, szTmp);
-    ncount = 0;
+    this->setColumnWidth(0,  522);
+    this->setColumnWidth(1, 60);
 }
 
 CMytableview::~CMytableview()
 {
+    if (delegate)
+    {
+        delete delegate;
+        delegate = NULL;
+    }
+    if (model)
+    {
+        delete model;
+        model = NULL;
+    }
+    if (modelhandup)
+    {
+        delete modelhandup;
+        modelhandup = NULL;
+    }
 }
 
 void CMytableview::mouseMoveEvent(QMouseEvent *event)
@@ -217,6 +229,14 @@ void CMytableview::mouseReleaseEvent(QMouseEvent *event)
 void CMytableview::SetType(int type)
 {
     delegate->SetType(type);
+    if (type == 1)
+    {
+        setModel(model);
+    }
+    if (type == 0)
+    {
+        setModel(modelhandup);
+    }
 }
 
 void CMytableview::setCount(int count)

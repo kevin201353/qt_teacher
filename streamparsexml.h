@@ -13,6 +13,8 @@ public:
     int readXml(const QString xmlData);
     int readXml2(const QString filename);
     int readxmlclass(const QString xmlData);
+    int readxmlComm(const QString xmlData, const QString szKey, QString& value, int nType);
+    int readXmlstuinfo(const QString xmlData);
     inline void setType(QMap<QString, int> type){
         m_ntype = type;
     };

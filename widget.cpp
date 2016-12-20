@@ -37,13 +37,17 @@ Widget::Widget(QWidget *parent) :
     ui->class_room->setText("班级1");
     ui->vm_name->setText("教室1");
     ui->raiseHandPushButton->setStyleSheet("QPushButton{border-image: url(:/images/hand_nor.png);}"
-                               "QPushButton:pressed{border-image: url(:/images/hand_press.png);}");
+                               "QPushButton:hover{border-image: url(:/images/hand_press.png);}"
+                               "QPushButton:pressed{border-image: url(:/images/hand_nor.png);}");
     ui->btn_broadcast->setStyleSheet("QPushButton{border-image: url(:/images/demo_nor.png);}"
-                                "QPushButton:pressed{border-image: url(:/images/demo_press.png);}");
+                                "QPushButton:hover{border-image: url(:/images/demo_press.png);}"
+                                "QPushButton:pressed{border-image: url(:/images/demo_nor.png);}");
     ui->btn_student->setStyleSheet("QPushButton{border-image: url(:/images/student_nor.png);}"
-                            "QPushButton:pressed{border-image: url(:/images/student_press.png);}");
+                            "QPushButton:hover{border-image: url(:/images/student_press.png);}"
+                            "QPushButton:pressed{border-image: url(:/images/student_nor.png);}");
     ui->btn_exit->setStyleSheet("QPushButton{border-image: url(:/images/exit_nor.png);}"
-                            "QPushButton:pressed{border-image: url(:/images/exit_press.png);}");
+                            "QPushButton:hover{border-image: url(:/images/exit_press.png);}"
+                            "QPushButton:pressed{border-image: url(:/images/exit_nor.png);}");
     //signal
     connect(ui->btn_exit, SIGNAL(clicked(bool)), this, SLOT(exit_widget()));
     stulistWidget = NULL;
@@ -56,6 +60,11 @@ Widget::Widget(QWidget *parent) :
     stulistWidget->setaddress(SERVICE_ADDRESS);
     stulistWidget->setWidget(this);
 
+    ui->btn_broadcast->setToolTip("演示");
+    ui->raiseHandPushButton->setToolTip("举手列表");
+    ui->btn_student->setToolTip("学生列表");
+    ui->btn_exit->setToolTip("退出");
+
     g_mapObject["widget"] = this;
     g_mapObject["stulist"] = stulistWidget;
     m_pthread = NULL;
@@ -65,6 +74,7 @@ Widget::Widget(QWidget *parent) :
     stulistWidget->settype(0);
     g_mapObject["DataThread"] = m_pDataThread;
     getclassinfo();
+    m_bstart = false;
 }
 
 Widget::~Widget()
@@ -110,7 +120,44 @@ void Widget::on_raiseHandPushButton_clicked()
 void Widget::exit_widget()
 {
     //MESSAGEBOX("this is exit_button.");
-    close();
+    QString url = HTTP_URL_HEAD;
+    url += SERVICE_ADDRESS;
+    url += "/service/classes/tec_exit_desktop";
+    QString data;
+    //m_strMac = "00:1a:4a:16:01:57";
+    data = "vmMac=";
+    data += m_strMac;
+    myHttp *http = new myHttp;
+    if (http)
+    {
+        QString str = "send exit teacher terminal request: ";
+        str += url;
+        str += "------";
+        str += data;
+        writeLogFile(QtDebugMsg, str);
+        if (!http->Post(url, data))
+        {
+            writeLogFile(QtDebugMsg, "send exit teacher terminal request failed.");
+            delete http;
+            http = NULL;
+            return;
+        }
+        QString strTmp;
+        str = "send exit teacher terminal -------";
+        http->GetData(strTmp);
+        str += strTmp;
+        writeLogFile(QtDebugMsg, str);
+        StreamParseXml parsexml;
+        QString result;
+        parsexml.readxmlComm(strTmp, "success", result, 0);
+        delete http;
+        http = NULL;
+        if (result == "false")
+        {
+             writeLogFile(QtDebugMsg, "send exit teacher terminal request failed 2222.");
+        }
+    }//if
+    //close();
     //qApp->exit();
 }
 
@@ -144,13 +191,22 @@ void Widget::on_demo_clicked()
     url += SERVICE_ADDRESS;
     url += "/service/classes/show";
     QString data;
+    //m_strMac = "00:1a:4a:16:01:57";
     data = "vmMac=";
     data += m_strMac;
     data += "&";
     data += "type=teacher";
     data += "&";
-    data += "onOff=true";
-
+    bool bDemoRunning = false;
+    if (!m_bstart)
+    {
+        data += "onOff=true";
+        m_bstart = true;
+    }else
+    {
+        data += "onOff=false";
+        m_bstart = false;
+    }
     myHttp *http = new myHttp;
     if (http)
     {
@@ -162,12 +218,36 @@ void Widget::on_demo_clicked()
         if (!http->Post(url, data))
         {
             writeLogFile(QtDebugMsg, "teacher demo failed.");
+            delete http;
+            http = NULL;
+            return;
         }
         QString strTmp;
+        str = "demo clicked -------";
         http->GetData(strTmp);
-        writeLogFile(QtDebugMsg, strTmp);
+        str += strTmp;
+        writeLogFile(QtDebugMsg, str);
+        StreamParseXml parsexml;
+        QString result;
+        parsexml.readxmlComm(strTmp, "success", result, 0);
         delete http;
         http = NULL;
+        if (result == "true" || result == "操作成功")
+        {
+            bDemoRunning = true;
+        }
+        if (bDemoRunning && m_bstart)
+        {
+            ui->btn_broadcast->setStyleSheet("QPushButton{border-image: url(:/images/demo_stop_nor.png);}"
+                                          "QPushButton:hover{border-image: url(:/images/demo_stop_nor.png);}"
+                                        "QPushButton:pressed{border-image: url(:/images/demo_stop_press.png);}");
+        }
+        if (bDemoRunning && !m_bstart)
+        {
+            ui->btn_broadcast->setStyleSheet("QPushButton{border-image: url(:/images/demo_nor.png);}"
+                                         "QPushButton:hover{border-image: url(:/images/demo_press.png);}"
+                                        "QPushButton:pressed{border-image: url(:/images/demo_nor.png);}");
+        }
     }
 }
 
@@ -224,8 +304,13 @@ void Widget::procesdata()
     m_pDataThread->start();
 }
 
+bool m_bNoticeRunning = false;
 void Widget::NoticeMsg(QString szMsg)
 {
-    Notice notice;
-    emit ShowNotice(szMsg);
+   if (!m_bNoticeRunning)
+   {
+       Notice* notice = new Notice;
+       emit ShowNotice(szMsg);
+       notice->printTest();
+   }
 }

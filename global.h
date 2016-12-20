@@ -30,9 +30,11 @@ struct ReportMsg {
 };
 
 struct StruInfo {
+    QString id;
     QString name;
     QString noSeat;
     QString apId;
+    QString handup;
 };
 
 #define   HTTP_URL_HEAD  "http://"

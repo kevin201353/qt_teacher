@@ -52,10 +52,11 @@ public:
     ~CMytableview();
 
 public:
-    MyStandardItemModel * GetMyItemModel()
+    MyStandardItemModel * GetMyItemModel(int ntype)
     {
-        return model;
+        return ntype==1?model:modelhandup;
     }
+
     void SetType(int type);
     void setCount(int count);
     int getCount() const {
@@ -68,6 +69,7 @@ protected:
 private:
     MyStuDelegate * delegate;
     MyStandardItemModel * model;
+    MyStandardItemModel * modelhandup;
     int ncount;
 };
 #endif // CMYTABLEVIEW_H

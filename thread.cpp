@@ -10,6 +10,7 @@
 QString g_xmldata;
 QMutex g_mutex;
 extern QMap<QString, QObject *> g_mapObject;
+
 Thread::Thread()
 {
     m_stopped = false;
@@ -25,7 +26,7 @@ void Thread::run()
     {
         QMutexLocker Locker(&g_mutex);
         SendMessage();
-        sleep(5);
+        sleep(3);
     }
     m_stopped = false;
 }
@@ -101,7 +102,7 @@ void DataThread::processdata()
     if (g_xmldata.length() > 0 && !g_xmldata.isEmpty())
     {
         parsexml.setType(m_ntype);
-        parsexml.readXml(g_xmldata);
+        parsexml.readXmlstuinfo(g_xmldata);
         g_xmldata = "";
     }
 }

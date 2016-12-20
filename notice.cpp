@@ -4,6 +4,7 @@
 #include <QDesktopWidget>
 #include "global.h"
 
+extern bool m_bNoticeRunning;
 Notice::Notice(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Notice)
@@ -21,7 +22,7 @@ Notice::Notice(QWidget *parent) :
     normal_Point.setX(desk_rect.width() - rect().width());
     normal_Point.setY(desk_rect.height() - rect().height());
     move(normal_Point.x(), normal_Point.y());
-    ui->label_Notice->setStyleSheet("background-color: rgba(42, 116, 190, 150)");
+    ui->label_Notice->setStyleSheet("background-color: rgba(255, 255, 255, 255)");
     //ui->label->setStyleSheet("border-image: url(:/images/file_receiver.png);");
     g_mapObject["noticewin"] = this;
     isEnter = false;
@@ -32,15 +33,20 @@ Notice::Notice(QWidget *parent) :
     connect(timerStay, SIGNAL(timeout()), this, SLOT(myStay()));
     timerClose = new QTimer(this);
     connect(timerClose, SIGNAL(timeout()), this, SLOT(myClose()));
+    timerShow->setInterval(500);
+    timerStay->setInterval(500);
+    timerClose->setInterval(500);
     timerShow->start(5);
+    m_bNoticeRunning = true;
 }
 
 Notice::~Notice()
 {
-    delete ui;
-    delete timerShow;
-    delete timerStay;
-    delete timerClose;
+   delete ui;
+   delete timerShow;
+   delete timerStay;
+   delete timerClose;
+   m_bNoticeRunning = false;
 }
 
 void Notice::myMove()
@@ -82,6 +88,7 @@ void Notice::myClose()
     {
         timerClose->stop();
         emit close();
+        delete this;
     }
     else
     {

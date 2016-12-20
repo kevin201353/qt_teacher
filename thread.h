@@ -46,5 +46,4 @@ private:
     QMap<QString, int> m_ntype;
     StreamParseXml  parsexml;
 };
-
 #endif // THREAD_H

@@ -15,6 +15,8 @@
 //</COMMAND>
 
 QList<StruInfo> g_stu2List;
+QList<StruInfo> g_handupList;
+QList<StruInfo> g_stuTmp;
 
 StreamParseXml::StreamParseXml()
 {
@@ -26,9 +28,9 @@ StreamParseXml::~StreamParseXml()
 
 }
 
-int nfirst = 1;
 int StreamParseXml::readXml(const QString xmlData)
 {
+    ReportMsg msg;
     reader = new QXmlStreamReader(xmlData);
     while(!reader->atEnd() && !reader->hasError())
     {
@@ -39,59 +41,124 @@ int StreamParseXml::readXml(const QString xmlData)
         {
             continue;
         }
-        if (reader->isStartElement() && reader->name() == "desktopRoomAps")
+        if (m_ntype["stu"] == 1)
         {
-            if (m_ntype["stu"] == 0 || m_ntype["stu"] == 1)
+            if (reader->isStartElement() && reader->name() == "desktopRoomAps")
             {
                 QString apId = getValue("apId");
-                QString strTmp = getValue("dSeat");
+                QString Id = getValue("id");
+                QString strSeat = getValue("dSeat");
                 QString strSin = getValue("dSignin");
-                if (strSin == "1")
+                QString str = getValue("dStuName");
+                QString strTp = "id=";
+                StruInfo info;
+                info.id = Id;
+                info.name = str;
+                info.noSeat = strSeat;
+                info.apId = apId;
+                strTp += info.id;
+                strTp += "  ";
+                strTp += "name=";
+                strTp += info.name;
+                strTp += "  ";
+                strTp += "noSeat=";
+                strTp += info.noSeat;
+                strTp += "  ";
+                strTp += "apId=";
+                strTp += "  ";
+                strTp += info.apId;
+                qDebug() << strTp;
+//                if (strSin == "1" || strSin == "0")
+//                {
+//                    QString str = getValue("dStuName");
+//                    bool insert = 1;
+//                    for (int i=0; i< g_stu2List.size(); i++)
+//                    {
+//                        StruInfo info = g_stu2List.at(i);
+//                        if (info.id == Id)
+//                        {
+//                            QString strTmp2 = "xxxxxxxxxx ---  ";
+//                            strTmp2 += info.id;
+//                            qDebug() << strTmp2;
+//                            insert = 0;
+//                            break;
+//                        }
+//                    }
+//                    if (insert == 1)
+//                    {
+//                        StruInfo info;
+//                        info.id = Id;
+//                        info.name = str;
+//                        info.noSeat = strSeat;
+//                        info.apId = apId;
+//                        g_stu2List.append(info);
+//                        QString strTp = "id=";
+//                        strTp += info.id;
+//                        strTp += "  ";
+//                        strTp += "name=";
+//                        strTp += info.name;
+//                        strTp += "  ";
+//                        strTp += "noSeat=";
+//                        strTp += info.noSeat;
+//                        strTp += "  ";
+//                        strTp += "apId=";
+//                        strTp += "  ";
+//                        strTp += info.apId;
+//                        qDebug() << strTp;
+//                    }
+//                }//str == 1
+            }//if reader
+        }
+        if (m_ntype["stu"] == 0)
+        {
+            if (reader->isStartElement() && reader->name() == "studentHandUpStatus")
+            {
+                QString handup = getValue("enableHandUp");
+                QString id = getValue("id");
+                QString strname = getValue("name");
+                QString strseat = getValue("seat");
+                if (handup == "true")
                 {
-                    QString str = getValue("dStuName");
-                    if (str.isEmpty() && strTmp.isEmpty())
-                        continue;
-                    bool insert = 0;
-                    if (g_stu2List.size() > 0)
+                    bool insert = 1;
+                    for (int i=0; i< g_handupList.size(); i++)
                     {
-                        for (int i=0; i< g_stu2List.size(); i++)
+                        StruInfo info = g_handupList.at(i);
+                        if (info.id == id)
                         {
-                            StruInfo info = g_stu2List.at(i);
-                            if (info.name == str && info.noSeat != strTmp)
-                            {
-                                insert = 1;
-                                break;
-                            }
-                            if (info.name != str)
-                            {
-                                insert = 1;
-                                break;
-                            }
-                        }
-                        if (insert == 1)
-                        {
-                            StruInfo info;
-                            info.name = str;
-                            info.noSeat = strTmp;
-                            info.apId = apId;
-                            g_stu2List.append(info);
                             insert = 0;
-                            noticeMsgWindow(info);
+                            break;
                         }
-                    }//if g_stru > 0
-                    if (g_stu2List.size() == 0)
+                    }
+                    if (insert == 1)
                     {
                         StruInfo info;
-                        info.name = str;
-                        info.noSeat = strTmp;
-                        info.apId = apId;
-                        g_stu2List.append(info);
+                        info.id = id;
+                        info.name = strname;
+                        info.noSeat = strseat;
+                        g_handupList.append(info);
+                        insert = 0;
                         noticeMsgWindow(info);
                     }
-                }//str == 1
-             }//if m_ntype
-        }//if
+                }//handup
+                else if (handup == "false")
+                {
+                    for (int i=0; i< g_handupList.size(); i++)
+                    {
+                        StruInfo info = g_handupList.at(i);
+                        if (info.id == id)
+                        {
+                            g_handupList.removeAt(i);
+                            break;
+                        }
+                    }
+                }
+            }//if reader
+        }//m_ntype
     }//
+    qDebug() << "8888888888888888888888888888  start view list.";
+    msg.action = USER_MSG_DEALSTULIST;
+    msg.val1 = m_ntype["stu"];
+    call_msg_back(msg_respose, msg);
     if (reader->hasError())
         qDebug() << reader->errorString();
     reader->clear();
@@ -202,18 +269,21 @@ QString StreamParseXml::getValue(const QString &name)
             break;
         reader->readNext();
         if (reader->isStartElement() && reader->name() == name)
+        {
+            //qDebug() << reader->readElementText();
             return reader->readElementText();
+        }
     }
     return "";
 }
 
 void StreamParseXml::noticeMsgWindow(StruInfo info)
 {
-    ReportMsg msg;
+    //ReportMsg msg;
     if (m_ntype["stu"] == 0 || m_ntype["stu"] == 1)
     {
-        msg.action = USER_MSG_DEALSTULIST;
-        msg.val1 = m_ntype["stu"];
+        //msg.action = USER_MSG_DEALSTULIST;
+        //msg.val1 = m_ntype["stu"];
         if (m_ntype["stu"] == 0)
         {
             QString strTmp = info.name;
@@ -224,5 +294,168 @@ void StreamParseXml::noticeMsgWindow(StruInfo info)
             emit pthread->NoticeShow(strTmp);
         }
     }
+    //call_msg_back(msg_respose, msg);
+}
+
+int StreamParseXml::readxmlComm(const QString xmlData, const QString szKey, QString& value, int nType)
+{
+    reader = new QXmlStreamReader(xmlData);
+    while(!reader->atEnd() && !reader->hasError())
+    {
+        if (m_stop)
+           break;
+        QXmlStreamReader::TokenType token = reader->readNext();
+        if(token == QXmlStreamReader::StartDocument)
+        {
+            continue;
+        }
+        if (reader->isStartElement() && reader->name() == "data")
+        {
+            if (nType == 0)
+            {
+                value = getValue(szKey);
+                break;
+            }
+        }
+    }
+    if (reader->hasError())
+        qDebug() << reader->errorString();
+    reader->clear();
+    delete reader;
+    reader = NULL;
+    return 0;
+}
+
+
+int StreamParseXml::readXmlstuinfo(const QString xmlData)
+{
+    reader = new QXmlStreamReader(xmlData);
+    if (reader == NULL)
+        return 0;
+    ReportMsg msg;
+    StruInfo info;
+    while(!reader->atEnd())
+    {
+        if (m_ntype["stu"] == 1)
+        {
+            if (reader->isStartElement())
+            {
+                if (reader->name() == "apId")
+                {
+                    info.apId = reader->readElementText();
+                }
+                if (reader->name() == "id")
+                {
+                    info.id = reader->readElementText();
+                }
+                if (reader->name() == "dSeat")
+                {
+                    info.noSeat = reader->readElementText();
+                }
+                if (reader->name() == "dStuName")
+                {
+                    info.name = reader->readElementText();
+                }
+
+            }else if (reader->isEndElement() && reader->name() == "desktopRoomAps")
+            {
+                bool insert = 1;
+                for (int i=0; i< g_stu2List.size(); i++)
+                {
+                    StruInfo infotmp = g_stu2List.at(i);
+                    if (infotmp.id == info.id)
+                    {
+                        QString strTmp2 = "xxxxxxxxxx ---  ";
+                        strTmp2 += infotmp.id;
+                        qDebug() << strTmp2;
+                        insert = 0;
+                        break;
+                    }
+                }
+                if (insert == 1)
+                {
+                    StruInfo info2;
+                    info2 = info;
+                    g_stu2List.append(info2);
+                    QString strTp;
+                    strTp+= info2.id;
+                    strTp += "  ";
+                    strTp += "name=";
+                    strTp += info2.name;
+                    strTp += "  ";
+                    strTp += "noSeat=";
+                    strTp += info2.noSeat;
+                    strTp += "  ";
+                    strTp += "apId=";
+                    strTp += "  ";
+                    strTp += info2.apId;
+                    qDebug() << strTp;
+                }
+            }
+        }//if mtype == 1
+        if (m_ntype["stu"] == 0)
+        {
+            if (reader->isStartElement())
+            {
+                if (reader->name() == "enableHandUp")
+                {
+                    info.handup = reader->readElementText();
+                }
+                if (reader->name() == "id")
+                {
+                    info.id = reader->readElementText();
+                }
+                if (reader->name() == "name")
+                {
+                    info.name = reader->readElementText();
+                }
+                if (reader->name() == "seat")
+                {
+                    info.noSeat = reader->readElementText();
+                }
+            }if (reader->isEndElement() && reader->name() == "studentHandUpStatus")
+            {
+                if (info.handup == "true")
+                {
+                    bool insert = 1;
+                    for (int i=0; i< g_handupList.size(); i++)
+                    {
+                        StruInfo infotmp = g_handupList.at(i);
+                        if (infotmp.id == info.id)
+                        {
+                            insert = 0;
+                            break;
+                        }
+                    }
+                    if (insert == 1)
+                    {
+                        StruInfo info2;
+                        info2 = info;
+                        g_handupList.append(info2);
+                        noticeMsgWindow(info2);
+                    }
+                }//handup
+                else if (info.handup == "false")
+                {
+                    for (int i=0; i< g_handupList.size(); i++)
+                    {
+                        StruInfo infotmp = g_handupList.at(i);
+                        if (infotmp.id == info.id)
+                        {
+                            g_handupList.removeAt(i);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        reader->readNext();
+    }
+    msg.action = USER_MSG_DEALSTULIST;
+    msg.val1 = m_ntype["stu"];
     call_msg_back(msg_respose, msg);
+    reader->clear();
+    delete reader;
+    reader = NULL;
+    return 0;
 }

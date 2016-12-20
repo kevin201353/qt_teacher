@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QPoint>
 #include <QTimer>
+#include <QDebug>
 
 namespace Ui {
 class Notice;
@@ -18,6 +19,9 @@ public:
     ~Notice();
 public:
     void setMsg(QString szMsg);
+    void printTest(){
+        qDebug() << "printTest";
+    };
 private:
     void enterEvent(QEvent *);
     void leaveEvent(QEvent *);
