@@ -46,4 +46,22 @@ private:
     QMap<QString, int> m_ntype;
     StreamParseXml  parsexml;
 };
+
+class classThread : public QThread
+{
+    Q_OBJECT
+public:
+    classThread();
+    ~classThread();
+public:
+    void stop();
+    void setMac(QString szMac);
+protected:
+    void run() Q_DECL_OVERRIDE;
+    void processdata();
+private:
+    volatile bool  m_stop;
+    QString m_strMac;
+
+};
 #endif // THREAD_H

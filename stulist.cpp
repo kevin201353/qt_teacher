@@ -60,6 +60,8 @@ void stulist::mouseReleaseEvent(QMouseEvent *event)
 
 void stulist::exit_widget()
 {
+    if (m_ntype == 1)
+        settype(0);
     close();
 }
 
@@ -74,6 +76,8 @@ void stulist::settype(short ntype)
       ui->title_label->setText("学生列表");
     }
     m_ntype = ntype;
+    ui->stutableView->clearSpans();
+    ui->stutableView->updateGeometry();
     ui->stutableView->SetType(ntype);
     ui->stutableView->setColumnWidth(0,  522);
     ui->stutableView->setColumnWidth(1, 60);
@@ -93,7 +97,7 @@ void stulist::settype(short ntype)
         str += "/service/classes/list_stu";
         msglist.append(str);
     }
-    m_szMac = "00:1a:4a:16:01:57";
+    //m_szMac = "00:1a:4a:16:01:57";
     QString data = "vmMac=";
     data += m_szMac;
     msglist.append(data);  //MAC:38:2C:4A:B4:B6:F8

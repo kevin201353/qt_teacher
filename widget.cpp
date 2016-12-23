@@ -12,16 +12,21 @@
 #include <QList>
 #include <QFile>
 #include "myhttp.h"
+#include "streamparsexml.h"
 
 #define PORT 5555
 #define FTP_PATH "C:\\ftp_upload\\"
 
 QMap<QString, QObject *> g_mapObject;
+//NetConfig g_config;
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
 {
+    //读取网络配置文件
+    //StreamParseXml netxl;
+    //netxl.readNetConfig("netconfig.xml", &g_config);
     ui->setupUi(this);
     //setAttribute(Qt::WA_TranslucentBackground, true);
     setWindowFlags( Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
@@ -73,8 +78,12 @@ Widget::Widget(QWidget *parent) :
     procesdata();
     stulistWidget->settype(0);
     g_mapObject["DataThread"] = m_pDataThread;
-    getclassinfo();
+    //getclassinfo();
     m_bstart = false;
+    m_pclassThrd = NULL;
+    m_pclassThrd = new classThread;
+    m_pclassThrd->setMac(m_strMac);
+    m_pclassThrd->start();
 }
 
 Widget::~Widget()
@@ -96,6 +105,12 @@ Widget::~Widget()
     {
         delete stulistWidget;
         stulistWidget = NULL;
+    }
+    if (m_pclassThrd)
+    {
+        m_pclassThrd->stop();
+        delete m_pclassThrd;
+        m_pclassThrd = NULL;
     }
     delete ui;
 }
@@ -256,6 +271,7 @@ void Widget::getclassinfo()
     QString url = HTTP_URL_HEAD;
     url += SERVICE_ADDRESS;
     url += "/service/desktops/classinfo";
+    //url += "/service/classes/classinfo";  //test
     //m_strMac = "00:1a:4a:16:01:57";
     QString data = "vmMac=";
     data += m_strMac;
@@ -310,7 +326,7 @@ void Widget::NoticeMsg(QString szMsg)
    if (!m_bNoticeRunning)
    {
        Notice* notice = new Notice;
-       emit ShowNotice(szMsg);
        notice->printTest();
+       emit ShowNotice(szMsg);
    }
 }

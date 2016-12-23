@@ -9,8 +9,10 @@ myHttp::myHttp()
     m_peventLoop = new QEventLoop();
     //m_pRequst.setRawHeader("eduToken", "ABCDEF0123456789");
     //m_pRequst.setRawHeader("Accept", "application/xml");
-    QObject::connect(m_pNetManager, SIGNAL(finished(QNetworkReply*)), m_peventLoop, SLOT(quit()));
-    //QObject::connect(m_pNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+    m_timer.setInterval(5000);
+    m_timer.setSingleShot(true);
+    connect(&m_timer,  SIGNAL(timeout()), m_peventLoop, SLOT(quit()));
+    connect(m_pNetManager, SIGNAL(finished(QNetworkReply*)), m_peventLoop, SLOT(quit()));
 }
 
 myHttp::~myHttp()
@@ -56,11 +58,31 @@ void myHttp::GetData(QString &Buf)
 {
     if(m_preply == NULL)
         return ;
+    m_timer.start();
     m_peventLoop->exec();
-    m_XmlMessage = m_preply->readAll();
-    Buf = m_XmlMessage;
-    writeLogFile(QtDebugMsg, Buf);
-    qDebug() << Buf;
+    if (m_timer.isActive())  //处理响应
+    {
+        m_timer.stop();
+        if (m_preply->error() != QNetworkReply::NoError)
+        {
+            // 错误处理
+            qDebug() << "Error String : " << m_preply->errorString();
+            writeLogFile(QtDebugMsg, m_preply->errorString());
+        } else {
+            QVariant variant = m_preply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+            int nStatusCode = variant.toInt();
+            // 根据状态码做进一步数据处理
+            qDebug() << "http m_preply Status Code : " << nStatusCode;
+            m_XmlMessage = m_preply->readAll();
+            Buf = m_XmlMessage;
+            writeLogFile(QtDebugMsg, Buf);
+            qDebug() << Buf;
+        }
+    }else //time out
+    {
+        disconnect(m_pNetManager, SIGNAL(finished(QNetworkReply*)), m_peventLoop, SLOT(quit()));
+        qDebug() << "http request Timeout ........";
+    }
 }
 
 //异步处理 http

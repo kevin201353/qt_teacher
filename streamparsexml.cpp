@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include "global.h"
 #include "thread.h"
+#include <QMutex>
 
 //<?xml version="1.0" encoding="UTF-8">
 //<COMMAND>
@@ -17,7 +18,8 @@
 QList<StruInfo> g_stu2List;
 QList<StruInfo> g_handupList;
 QList<StruInfo> g_stuTmp;
-
+extern QMutex g_mutexlist;
+QMutex g_mutex2;
 StreamParseXml::StreamParseXml()
 {
     m_stop = false;
@@ -203,14 +205,16 @@ int StreamParseXml::readxmlclass(const QString xmlData)
     return 0;
 }
 
-int StreamParseXml::readXml2(const QString filename)
+int StreamParseXml::readNetConfig(const QString filename, NetConfig *pconfig)
 {
     if(filename.isEmpty())
+        return -1;
+    if (pconfig == NULL)
         return -1;
     QFile *file = new QFile(filename);
     if(!file->open(QFile::ReadOnly | QFile::Text))
     {
-       QMessageBox::information(NULL, QString("title"), QString("open error!"));
+       QMessageBox::information(NULL, QString("Net Config"), QString("open error!"));
        return -1;
     }
     reader = new QXmlStreamReader(file);
@@ -221,20 +225,19 @@ int StreamParseXml::readXml2(const QString filename)
         {
             continue;
         }
-        if (reader->isStartElement() && reader->name() == "OBJECT")
+        if (reader->isStartElement() && reader->name() == "net")
         {
-             QString elementText = reader->readElementText();
-             if (elementText == "USER")
-             {
-                 parseUserInformation();
-                 break;
-             }
+            pconfig->protocol = getValue("protocol");
+            pconfig->addr = getValue("addr");
+            pconfig->port = getValue("port");
         }
     }
     if (reader->hasError()) {
        qDebug() << reader->errorString();
        //QMessageBox::information(NULL, QString("parseXML"), reader->errorString());
     }
+    file->close();
+    delete file;
     reader->clear();
     delete reader;
     reader = NULL;
@@ -334,6 +337,7 @@ int StreamParseXml::readXmlstuinfo(const QString xmlData)
         return 0;
     ReportMsg msg;
     StruInfo info;
+    g_stu2List.clear();
     while(!reader->atEnd())
     {
         if (m_ntype["stu"] == 1)
@@ -417,22 +421,27 @@ int StreamParseXml::readXmlstuinfo(const QString xmlData)
             {
                 if (info.handup == "true")
                 {
-                    bool insert = 1;
-                    for (int i=0; i< g_handupList.size(); i++)
+                    if (!info.id.isEmpty())
                     {
-                        StruInfo infotmp = g_handupList.at(i);
-                        if (infotmp.id == info.id)
+                        bool insert = 1;
+                        for (int i=0; i< g_handupList.size(); i++)
                         {
-                            insert = 0;
-                            break;
+                            StruInfo infotmp = g_handupList.at(i);
+                            if (infotmp.id == info.id)
+                            {
+                                insert = 0;
+                                break;
+                            }
                         }
-                    }
-                    if (insert == 1)
-                    {
-                        StruInfo info2;
-                        info2 = info;
-                        g_handupList.append(info2);
-                        noticeMsgWindow(info2);
+                        if (insert == 1)
+                        {
+                            StruInfo info2;
+                            info2 = info;
+                            g_mutexlist.lock();
+                            g_handupList.append(info2);
+                            g_mutexlist.unlock();
+                            noticeMsgWindow(info2);
+                        }
                     }
                 }//handup
                 else if (info.handup == "false")
@@ -442,7 +451,14 @@ int StreamParseXml::readXmlstuinfo(const QString xmlData)
                         StruInfo infotmp = g_handupList.at(i);
                         if (infotmp.id == info.id)
                         {
+                            g_mutexlist.lock();
                             g_handupList.removeAt(i);
+                            g_mutexlist.unlock();
+                            ReportMsg msg;
+                            msg.action = USER_MSG_UPDATEHANDUP;
+                            msg.val1 = m_ntype["stu"];
+                            msg.strval = infotmp.noSeat;
+                            call_msg_back(msg_respose, msg);
                             break;
                         }
                     }

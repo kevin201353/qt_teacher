@@ -26,7 +26,7 @@ void Thread::run()
     {
         QMutexLocker Locker(&g_mutex);
         SendMessage();
-        sleep(3);
+        sleep(1);
     }
     m_stopped = false;
 }
@@ -91,7 +91,7 @@ void DataThread::run()
     while (!m_stopped)
     {
         processdata();
-        sleep(3);
+        sleep(1);
     }
     m_stopped = false;
 }
@@ -110,4 +110,60 @@ void DataThread::processdata()
 void DataThread::settype(QString skey, int ntype)
 {
     m_ntype[skey] = ntype;
+}
+
+/*****************************************************************************/
+//class thread
+classThread::classThread()
+{
+    m_stop = false;
+}
+
+classThread::~classThread()
+{
+
+}
+
+void classThread::stop()
+{
+    m_stop = true;
+}
+
+void classThread::run()
+{
+    while (!m_stop)
+    {
+        processdata();
+        sleep(3);
+    }
+}
+
+void classThread::processdata()
+{
+    QString url = HTTP_URL_HEAD;
+    url += SERVICE_ADDRESS;
+    url += "/service/desktops/classinfo";
+    //url += "/service/classes/classinfo"; //test
+    //m_strMac = "00:1a:4a:16:01:57";
+    QString data = "vmMac=";
+    data += m_strMac;
+    myHttp http;
+    QString strdeg = "getclassinfo : ";
+    strdeg += url;
+    strdeg += "------";
+    strdeg += data;
+    writeLogFile(QtDebugMsg, strdeg);
+    if (!http.Post(url, data))
+    {
+        writeLogFile(QtDebugMsg, "getclassinfo failed.");
+    }
+    QString strBuf;
+    http.GetData(strBuf);
+    StreamParseXml xmlparse;
+    xmlparse.readxmlclass(strBuf);
+}
+
+void classThread::setMac(QString szMac)
+{
+    m_strMac = szMac;
 }

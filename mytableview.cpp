@@ -231,10 +231,12 @@ void CMytableview::SetType(int type)
     delegate->SetType(type);
     if (type == 1)
     {
+        model->removeRows(0, model->rowCount());
         setModel(model);
     }
     if (type == 0)
     {
+        modelhandup->removeRows(0, modelhandup->rowCount());
         setModel(modelhandup);
     }
 }

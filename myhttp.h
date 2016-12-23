@@ -7,6 +7,7 @@
 #include <QTextCodec>
 #include <QObject>
 #include <QEventLoop>
+#include <QTimer>
 
 class myHttp : public QObject
 {
@@ -26,6 +27,7 @@ private:
     QEventLoop *m_peventLoop;
     QNetworkReply *m_preply;
    // QNetworkRequest m_pRequst;
+    QTimer  m_timer;
 };
 
 #endif // MYHTTP_H

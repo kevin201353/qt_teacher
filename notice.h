@@ -19,7 +19,7 @@ public:
     ~Notice();
 public:
     void setMsg(QString szMsg);
-    void printTest(){
+    inline void printTest(){
         qDebug() << "printTest";
     };
 private:

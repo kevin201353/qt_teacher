@@ -12,6 +12,7 @@
 #define  USER_MSG_DEALSTULIST        102
 #define  USER_MSG_NOTICEWINDOW       103
 #define  USER_MSG_CLASSINFO          104
+#define  USER_MSG_UPDATEHANDUP       105
 
 struct XSize {
     int x;
@@ -35,6 +36,12 @@ struct StruInfo {
     QString noSeat;
     QString apId;
     QString handup;
+};
+
+struct NetConfig {
+    QString protocol;
+    QString addr;
+    QString port;
 };
 
 #define   HTTP_URL_HEAD  "http://"

@@ -18,8 +18,6 @@ class MyGlobalShortCut : public QObject
 {
     Q_OBJECT
 public:
-
-
     MyGlobalShortCut(QString key);
     ~MyGlobalShortCut();
     void activateShortcut();

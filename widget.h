@@ -61,5 +61,6 @@ private:
     Thread   *m_pthread;
     DataThread *m_pDataThread;
     bool    m_bstart;
+    classThread *m_pclassThrd;
 };
 #endif // WIDGET_H

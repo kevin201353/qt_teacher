@@ -77,38 +77,44 @@ void msg_respose(struct ReportMsg msg)
                 CMytableview *pView = (CMytableview *)list->GetList();
                 if (pView != NULL)
                 {
-                    int size = 0;
-                    if (msg.val1 == 1)
-                        size = g_stu2List.size();
-                    if (msg.val1 == 0)
-                        size = g_handupList.size();
-                    for(int i=0; i<size ; i++)
+                    if (pView->GetMyItemModel(1) != NULL)
                     {
-                        StruInfo info;
-                        if (msg.val1 == 0)
-                            info = g_handupList.at(i);
+                        int ncount = pView->GetMyItemModel(1)->rowCount();
+                        if (ncount > 0)
+                            pView->GetMyItemModel(1)->removeRows(0, ncount);
+                        int size = 0;
                         if (msg.val1 == 1)
-                            info = g_stu2List.at(i);
-                        QStandardItem * item = new QStandardItem;
-                        QString str = info.name;
-                        str += " - ";
-                        str += info.noSeat;
-                        item->setText(str);
-                        if (pView->GetMyItemModel(msg.val1) != NULL)
+                            size = g_stu2List.size();
+                        if (msg.val1 == 0)
+                            size = g_handupList.size();
+                        for(int i=0; i<size ; i++)
                         {
-                            pView->setRowHeight(i, 30);
-                            if ( i*30 + 30 > pView->height())
+                            StruInfo info;
+                            if (msg.val1 == 0)
+                                info = g_handupList.at(i);
+                            if (msg.val1 == 1)
+                                info = g_stu2List.at(i);
+                            QStandardItem * item = new QStandardItem;
+                            QString str = info.name;
+                            str += " - ";
+                            str += info.noSeat;
+                            item->setText(str);
+                            if (pView->GetMyItemModel(msg.val1) != NULL)
                             {
-                                //出现滚动条
-                                pView->setColumnWidth(0,  522 -30);
-                                pView->setColumnWidth(1, 60);
+                                pView->setRowHeight(i, 30);
+                                if ( i*30 + 30 > pView->height())
+                                {
+                                    //出现滚动条
+                                    pView->setColumnWidth(0,  522 -30);
+                                    pView->setColumnWidth(1, 60);
+                                }
+                                QString s00 = "7777777777777777777777 add list -------    ";
+                                s00 += str;
+                                qDebug() << s00;
+                                pView->GetMyItemModel(msg.val1)->setItem(i, 0, item);
                             }
-                            QString s00 = "7777777777777777777777 add list -------    ";
-                            s00 += str;
-                            qDebug() << s00;
-                            pView->GetMyItemModel(msg.val1)->setItem(i, 0, item);
-                        }
-                    }//for
+                        }//for
+                    }
                 }//if pview
             }//if list
         }
@@ -120,6 +126,41 @@ void msg_respose(struct ReportMsg msg)
              {
                 pwin->setvmclass(msg.str, msg.strval);
              }
+        }
+        break;
+    case USER_MSG_UPDATEHANDUP:
+        {
+            stulist *list = (stulist *)g_mapObject["stulist"];
+            if (list != NULL)
+            {
+                CMytableview *pView = (CMytableview *)list->GetList();
+                if (pView != NULL)
+                {
+                    if (msg.val1 == 0)
+                    {
+                        QString seat = msg.strval;
+                        if (pView->GetMyItemModel(msg.val1) != NULL)
+                        {
+                            g_mutexlist.lock();
+                            int nCount = pView->GetMyItemModel(msg.val1)->rowCount();
+                            for (int i=0; i<nCount; i++)
+                            {
+                                QStandardItem * item = pView->GetMyItemModel(msg.val1)->item(i, 0);
+                                QString tmp = item->text();
+                                int index = tmp.indexOf("-");
+                                QString seat_tmp = tmp.mid(index + 1);
+                                seat_tmp = seat_tmp.trimmed();
+                                qDebug() << seat_tmp;
+                                if (seat_tmp == seat)
+                                {
+                                    pView->GetMyItemModel(msg.val1)->removeRow(i);
+                                }
+                            }//for
+                            g_mutexlist.unlock();
+                        }
+                    }//handup
+                }
+            }
         }
         break;
     default:
