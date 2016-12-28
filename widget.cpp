@@ -13,13 +13,14 @@
 #include <QFile>
 #include "myhttp.h"
 #include "streamparsexml.h"
+#include "myqlist.h"
 
 #define PORT 5555
 #define FTP_PATH "C:\\ftp_upload\\"
 
 QMap<QString, QObject *> g_mapObject;
 //NetConfig g_config;
-
+MyQList   g_NoticeList;
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
@@ -60,6 +61,7 @@ Widget::Widget(QWidget *parent) :
     connect(ui->btn_student, SIGNAL(clicked(bool)), this, SLOT(on_stu_clicked()));
     connect(ui->btn_broadcast, SIGNAL(clicked(bool)), this, SLOT(on_demo_clicked()));
     //get host mac
+    g_mylog.open();
     m_strMac = getHostMacAddress().toLower();
     stulistWidget->setmac(m_strMac);
     stulistWidget->setaddress(SERVICE_ADDRESS);
@@ -84,6 +86,11 @@ Widget::Widget(QWidget *parent) :
     m_pclassThrd = new classThread;
     m_pclassThrd->setMac(m_strMac);
     m_pclassThrd->start();
+
+    m_NoticeThread = NULL;
+    m_NoticeThread = new NoticeThread;
+    connect(m_NoticeThread, SIGNAL(SINoticeShow(StruInfo*)), this, SLOT(ShowNoticeXX(StruInfo*)));
+    m_NoticeThread->start();
 }
 
 Widget::~Widget()
@@ -91,12 +98,14 @@ Widget::~Widget()
     if (m_pthread)
     {
         m_pthread->stop();
+        m_pthread->wait();
         delete m_pthread;
         m_pthread = NULL;
     }
     if (m_pDataThread)
     {
         m_pDataThread->stop();
+        m_pDataThread->wait();
         delete m_pDataThread;
         m_pDataThread = NULL;
     }
@@ -109,10 +118,19 @@ Widget::~Widget()
     if (m_pclassThrd)
     {
         m_pclassThrd->stop();
+        m_pclassThrd->wait();
         delete m_pclassThrd;
         m_pclassThrd = NULL;
     }
+    if (m_NoticeThread)
+    {
+        m_NoticeThread->stop();
+        m_NoticeThread->wait();
+        delete m_NoticeThread;
+        m_NoticeThread = NULL;
+    }
     delete ui;
+    g_mylog.close();
 }
 
 void Widget::enterEvent(QEvent *)
@@ -172,7 +190,7 @@ void Widget::exit_widget()
              writeLogFile(QtDebugMsg, "send exit teacher terminal request failed 2222.");
         }
     }//if
-    //close();
+    close();  //test
     //qApp->exit();
 }
 
@@ -301,12 +319,6 @@ void Widget::setvmclass(QString str1, QString str2)
     ui->class_room->setText(strClass);
 }
 
-void Widget::SetNoticeMsg2(QString szMsg)
-{
-    //Notice 消息框
-    emit ShowNotice(szMsg);
-}
-
 void Widget::readstulistfromserver()
 {
     m_pthread = new Thread();
@@ -316,17 +328,36 @@ void Widget::readstulistfromserver()
 void Widget::procesdata()
 {
     m_pDataThread = new DataThread();
-    connect(m_pDataThread, SIGNAL(NoticeShow(QString)), this, SLOT(NoticeMsg(QString)));
+    connect(m_pDataThread, SIGNAL(NoticeShow(StruInfo*)), this, SLOT(NoticeMsg(StruInfo*)));
     m_pDataThread->start();
 }
 
 bool m_bNoticeRunning = false;
-void Widget::NoticeMsg(QString szMsg)
+void Widget::NoticeMsg(StruInfo* info)
 {
-   if (!m_bNoticeRunning)
-   {
-       Notice* notice = new Notice;
-       notice->printTest();
-       emit ShowNotice(szMsg);
-   }
+//   Notice *pNotice = NULL;
+//   if (!m_bNoticeRunning)
+//   {
+//       pNotice = new Notice;
+//       pNotice->printTest();
+//       emit ShowNotice(szMsg);
+//   }
+    g_NoticeList.append(info);
+}
+
+static Notice *pNotice = NULL;
+void Widget::ShowNoticeXX(StruInfo* info)
+{
+    if (info != NULL)
+    {
+        if (!m_bNoticeRunning)
+        {
+            pNotice = new Notice;
+            pNotice->printTest();
+            emit ShowNotice(info);
+        }else
+        {
+            pNotice->setMsg(info);
+        }
+    }
 }

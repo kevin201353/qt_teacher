@@ -26,7 +26,7 @@ private:
     QString m_XmlMessage;
     QEventLoop *m_peventLoop;
     QNetworkReply *m_preply;
-   // QNetworkRequest m_pRequst;
+    QNetworkRequest m_pRequst;
     QTimer  m_timer;
 };
 

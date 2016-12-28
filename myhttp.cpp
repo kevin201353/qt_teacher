@@ -7,8 +7,10 @@ myHttp::myHttp()
 {
     m_pNetManager = new QNetworkAccessManager(this);
     m_peventLoop = new QEventLoop();
-    //m_pRequst.setRawHeader("eduToken", "ABCDEF0123456789");
-    //m_pRequst.setRawHeader("Accept", "application/xml");
+    m_pRequst.setHeader(QNetworkRequest::ContentTypeHeader,
+                        QString("application/x-www-form-urlencoded"));
+    m_pRequst.setRawHeader("eduToken", "ABCDEF0123456789");
+    m_pRequst.setRawHeader("Accept", "application/xml");
     m_timer.setInterval(5000);
     m_timer.setSingleShot(true);
     connect(&m_timer,  SIGNAL(timeout()), m_peventLoop, SLOT(quit()));
@@ -17,24 +19,32 @@ myHttp::myHttp()
 
 myHttp::~myHttp()
 {
+    m_timer.stop();
     if (m_pNetManager)
+    {
+        m_pNetManager->deleteLater();
         delete m_pNetManager;
+    }
     if (m_peventLoop)
+    {
+        m_peventLoop->exit();
+        m_peventLoop->deleteLater();
         delete m_peventLoop;
+    }
 }
 bool myHttp::Post(QString url, QString append)
 {
     QUrl    Tempurl(url);
     QByteArray  appen(append.toLatin1());
-    //m_pRequst.setUrl(Tempurl);
-    QNetworkRequest head;
-    head.setRawHeader(QByteArray("eduToken"), QByteArray("ABCDEF0123456789"));
-    head.setRawHeader(QByteArray("Accept"), QByteArray("application/xml"));
+    m_pRequst.setUrl(Tempurl);
+    //QNetworkRequest head;
+    //head.setRawHeader(QByteArray("eduToken"), QByteArray("ABCDEF0123456789"));
+    //head.setRawHeader(QByteArray("Accept"), QByteArray("application/xml"));
     //head.setRawHeader(QByteArray("Content-Type"), QByteArray("application/xml;charset=UTF-8"));
-    head.setUrl(Tempurl);
+    //head.setUrl(Tempurl);
     QString sTmp(appen);
     qDebug() << sTmp.toStdString().c_str();
-    m_preply = m_pNetManager->post(head, appen);
+    m_preply = m_pNetManager->post(m_pRequst, appen);
     if(NULL == m_preply)
         return false;
     return true;
@@ -42,12 +52,12 @@ bool myHttp::Post(QString url, QString append)
 bool myHttp::Get(QString url)
 {
     QUrl    Tempurl(url);
-   // m_pRequst.setUrl(Tempurl);
-    QNetworkRequest head;
-    head.setRawHeader(QByteArray("eduToken"), QByteArray("ABCDEF0123456789"));
-    head.setRawHeader(QByteArray("Accept"), QByteArray("application/xml"));
-    head.setUrl(Tempurl);
-    m_preply = m_pNetManager->get(head);
+    m_pRequst.setUrl(Tempurl);
+    //QNetworkRequest head;
+    //head.setRawHeader(QByteArray("eduToken"), QByteArray("ABCDEF0123456789"));
+    //head.setRawHeader(QByteArray("Accept"), QByteArray("application/xml"));
+    //head.setUrl(Tempurl);
+    m_preply = m_pNetManager->get(m_pRequst);
     if(NULL == m_preply)
         return false;
     return true;
@@ -73,10 +83,13 @@ void myHttp::GetData(QString &Buf)
             int nStatusCode = variant.toInt();
             // 根据状态码做进一步数据处理
             qDebug() << "http m_preply Status Code : " << nStatusCode;
-            m_XmlMessage = m_preply->readAll();
-            Buf = m_XmlMessage;
-            writeLogFile(QtDebugMsg, Buf);
-            qDebug() << Buf;
+            if (nStatusCode == 200)
+            {
+                m_XmlMessage = m_preply->readAll();
+                Buf = m_XmlMessage;
+                writeLogFile(QtDebugMsg, Buf);
+                qDebug() << Buf;
+            }
         }
     }else //time out
     {

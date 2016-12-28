@@ -6,11 +6,12 @@
 #include "thread.h"
 #include <QMutex>
 #include <QMutexLocker>
+#include "myqlist.h"
 
 QString g_xmldata;
 QMutex g_mutex;
 extern QMap<QString, QObject *> g_mapObject;
-
+extern MyQList   g_NoticeList;
 Thread::Thread()
 {
     m_stopped = false;
@@ -143,7 +144,6 @@ void classThread::processdata()
     QString url = HTTP_URL_HEAD;
     url += SERVICE_ADDRESS;
     url += "/service/desktops/classinfo";
-    //url += "/service/classes/classinfo"; //test
     //m_strMac = "00:1a:4a:16:01:57";
     QString data = "vmMac=";
     data += m_strMac;
@@ -159,11 +159,53 @@ void classThread::processdata()
     }
     QString strBuf;
     http.GetData(strBuf);
-    StreamParseXml xmlparse;
-    xmlparse.readxmlclass(strBuf);
+    if (strBuf.length() > 0 && !strBuf.isEmpty())
+    {
+        StreamParseXml xmlparse;
+        xmlparse.readxmlclass(strBuf);
+    }
 }
 
 void classThread::setMac(QString szMac)
 {
     m_strMac = szMac;
+}
+
+
+/***************************************************************************************************/
+NoticeThread::NoticeThread()
+{
+    m_stop = false;
+}
+
+NoticeThread::~NoticeThread()
+{
+
+}
+
+void NoticeThread::stop()
+{
+    m_stop = true;
+}
+
+void NoticeThread::run()
+{
+    while(!m_stop)
+    {
+        processdata();
+        sleep(1);
+    }
+}
+
+void  NoticeThread::processdata()
+{
+    int nsize = g_NoticeList.getsize();
+    for (int i=0; i<nsize; i++)
+    {
+        StruInfo *info = g_NoticeList.at(i);
+        if (info != NULL)
+        {
+            emit SINoticeShow(info);
+        }
+    }
 }

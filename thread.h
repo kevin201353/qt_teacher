@@ -34,7 +34,7 @@ public:
     DataThread();
     ~DataThread();
 signals:
-    void NoticeShow(QString szMsg);
+    void NoticeShow(StruInfo* szMsg);
 public:
     void stop();
     void processdata();
@@ -63,5 +63,23 @@ private:
     volatile bool  m_stop;
     QString m_strMac;
 
+};
+
+
+class NoticeThread : public  QThread
+{
+    Q_OBJECT
+ public:
+    NoticeThread();
+    ~NoticeThread();
+signals:
+    void SINoticeShow(StruInfo* info);
+ public:
+    void stop();
+ protected:
+    void run() Q_DECL_OVERRIDE;
+    void processdata();
+ private:
+    volatile bool m_stop;
 };
 #endif // THREAD_H

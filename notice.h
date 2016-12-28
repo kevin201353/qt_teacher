@@ -5,6 +5,7 @@
 #include <QPoint>
 #include <QTimer>
 #include <QDebug>
+#include "myqlist.h"
 
 namespace Ui {
 class Notice;
@@ -18,10 +19,10 @@ public:
     explicit Notice(QWidget *parent = 0);
     ~Notice();
 public:
-    void setMsg(QString szMsg);
     inline void printTest(){
         qDebug() << "printTest";
     };
+    void setMsg(StruInfo* info);
 private:
     void enterEvent(QEvent *);
     void leaveEvent(QEvent *);
@@ -29,7 +30,7 @@ private slots:
     void myMove();
     void myStay();
     void myClose();
-    void ShowText(QString szMsg);
+    void ShowText(StruInfo* info);
 private:
     Ui::Notice *ui;
     QTimer *timerShow;
@@ -38,6 +39,7 @@ private:
     bool isEnter;
     QPoint normal_Point;
     QString m_szMsg;
+    StruInfo m_stuinfo;
 };
 
 #endif // NOTICE_H

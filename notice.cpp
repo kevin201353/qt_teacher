@@ -5,6 +5,7 @@
 #include "global.h"
 
 extern bool m_bNoticeRunning;
+extern MyQList   g_NoticeList;
 Notice::Notice(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Notice)
@@ -29,7 +30,7 @@ Notice::Notice(QWidget *parent) :
     timerShow = NULL;
     timerStay = NULL;
     timerClose = NULL;
-    connect(g_mapObject["widget"], SIGNAL(ShowNotice(QString)), this, SLOT(ShowText(QString)));
+    connect(g_mapObject["widget"], SIGNAL(ShowNotice(StruInfo*)), this, SLOT(ShowText(StruInfo*)));
     timerShow = new QTimer(this);
     connect(timerShow, SIGNAL(timeout()), this, SLOT(myMove()));
     timerStay = new QTimer(this);
@@ -46,16 +47,19 @@ Notice::~Notice()
    delete ui;
    if (timerShow)
    {
+       timerShow->stop();
        delete timerShow;
        timerShow = NULL;
    }
    if (timerStay)
    {
+       timerStay->stop();
        delete timerStay;
        timerStay = NULL;
    }
    if (timerClose)
    {
+       timerClose->stop();
        delete timerClose;
        timerClose = NULL;
    }
@@ -70,7 +74,7 @@ void Notice::myMove()
     if(beginY <= normal_Point.y())
     {
         timerShow->stop();
-        timerStay->start(1000);
+        timerStay->start(2000);
         beginY = QApplication::desktop()->height();
     }
 }
@@ -86,7 +90,7 @@ void Notice::myStay()
     szTmp += "    ";
     szTmp += szPrint;
     qDebug() << szTmp;
-    if(timeCount>=6)
+    if(timeCount >= 6 && g_NoticeList.getsize() == 0)
     {
         timerStay->stop();
         timerClose->start(200);
@@ -109,6 +113,8 @@ void Notice::myClose()
     {
         timerClose->stop();
         tran = 1.0;
+        //g_NoticeList.removeAll();
+        g_NoticeList.remove(m_stuinfo.id);
         emit close();
         delete this;
     }
@@ -121,6 +127,7 @@ void Notice::myClose()
 void Notice::enterEvent(QEvent *)
 {
     isEnter = true;
+    myClose();
 }
 
 void Notice::leaveEvent(QEvent *)
@@ -128,13 +135,27 @@ void Notice::leaveEvent(QEvent *)
     isEnter = false;
 }
 
-void Notice::setMsg(QString szMsg)
+void Notice::ShowText(StruInfo* info)
 {
-    ui->label_Notice->setText(szMsg);
+    if (info != NULL)
+    {
+        m_stuinfo = *info;
+        QString strTmp = info->name;
+        strTmp += " - ";
+        strTmp += info->noSeat;
+        strTmp += "举手";
+        ui->label_Notice->setText(strTmp);
+        g_NoticeList.remove(info->id);
+        show();
+    }
 }
 
-void Notice::ShowText(QString szMsg)
+void Notice::setMsg(StruInfo* info)
 {
-    ui->label_Notice->setText(szMsg);
-    show();
+    QString strTmp = info->name;
+    strTmp += " - ";
+    strTmp += info->noSeat;
+    strTmp += "举手";
+    ui->label_Notice->setText(strTmp);
+    g_NoticeList.remove(info->id);
 }

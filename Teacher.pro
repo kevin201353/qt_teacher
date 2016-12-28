@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     message.cpp \
     thread.cpp \
     commjsonpaser.cpp \
-    notice.cpp
+    notice.cpp \
+    myqlist.cpp
 
 HEADERS  += widget.h \
     sendfile.h \
@@ -43,7 +44,8 @@ HEADERS  += widget.h \
     myhttp.h \
     thread.h \
     commjsonpaser.h \
-    notice.h
+    notice.h \
+    myqlist.h
 
 FORMS    += widget.ui \
     callname.ui \

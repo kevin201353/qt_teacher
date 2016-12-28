@@ -10,7 +10,6 @@ class StreamParseXml
 public:
     StreamParseXml();
     ~StreamParseXml();
-    int readXml(const QString xmlData);
     int readNetConfig(const QString filename, NetConfig *pconfig);
     int readxmlclass(const QString xmlData);
     int readxmlComm(const QString xmlData, const QString szKey, QString& value, int nType);

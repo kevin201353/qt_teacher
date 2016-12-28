@@ -11,7 +11,7 @@
 
 extern QList<StruInfo> g_stu2List;
 extern QList<StruInfo> g_handupList;
-QMutex g_mutexlist;
+//QMutex g_mutexlist;
 stulist::stulist(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::stulist)

@@ -15,7 +15,6 @@
 extern QList<StruInfo> g_stu2List;
 extern QList<StruInfo> g_handupList;
 extern QMap<QString, QObject *> g_mapObject;
-extern QMutex g_mutexlist;
 
 void call_msg_back(MsgCallBackFun fun, struct ReportMsg msg)
 {
@@ -141,22 +140,29 @@ void msg_respose(struct ReportMsg msg)
                         QString seat = msg.strval;
                         if (pView->GetMyItemModel(msg.val1) != NULL)
                         {
-                            g_mutexlist.lock();
                             int nCount = pView->GetMyItemModel(msg.val1)->rowCount();
-                            for (int i=0; i<nCount; i++)
+                            if (nCount > 0)
                             {
-                                QStandardItem * item = pView->GetMyItemModel(msg.val1)->item(i, 0);
-                                QString tmp = item->text();
-                                int index = tmp.indexOf("-");
-                                QString seat_tmp = tmp.mid(index + 1);
-                                seat_tmp = seat_tmp.trimmed();
-                                qDebug() << seat_tmp;
-                                if (seat_tmp == seat)
+                                for (int i=0; i<nCount; i++)
                                 {
-                                    pView->GetMyItemModel(msg.val1)->removeRow(i);
-                                }
-                            }//for
-                            g_mutexlist.unlock();
+                                    QStandardItem * item = pView->GetMyItemModel(msg.val1)->item(i, 0);
+                                    if (item != NULL)
+                                    {
+                                        QString tmp = item->text();
+                                        if (tmp.length() > 0 && !tmp.isEmpty())
+                                        {
+                                            int index = tmp.indexOf("-");
+                                            QString seat_tmp = tmp.mid(index + 1);
+                                            seat_tmp = seat_tmp.trimmed();
+                                            qDebug() << seat_tmp;
+                                            if (seat_tmp == seat)
+                                            {
+                                                pView->GetMyItemModel(msg.val1)->removeRow(i);
+                                            }
+                                        }
+                                    }
+                                }//for
+                            }
                         }
                     }//handup
                 }

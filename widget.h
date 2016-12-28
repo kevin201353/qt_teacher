@@ -31,20 +31,20 @@ public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
 signals:
-    void ShowNotice(QString szMsg);
+    void ShowNotice(StruInfo* szMsg);
 
 private slots:
     void on_demo_clicked();
     void on_raiseHandPushButton_clicked();
     void exit_widget();
     void on_stu_clicked();
-    void NoticeMsg(QString szMsg);
+    void NoticeMsg(StruInfo* info);
+    void ShowNoticeXX(StruInfo* info);
 public:
     QString getHostMacAddress();
     void procesdata();
     void getclassinfo();
     void setvmclass(QString str1, QString str2);
-    void SetNoticeMsg2(QString szMsg);
     void readstulistfromserver();
     Thread* GetThread(){
         return m_pthread;
@@ -62,5 +62,6 @@ private:
     DataThread *m_pDataThread;
     bool    m_bstart;
     classThread *m_pclassThrd;
+    NoticeThread *m_NoticeThread;
 };
 #endif // WIDGET_H
