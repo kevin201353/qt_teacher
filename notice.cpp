@@ -90,7 +90,7 @@ void Notice::myStay()
     szTmp += "    ";
     szTmp += szPrint;
     qDebug() << szTmp;
-    if(timeCount >= 6 && g_NoticeList.getsize() == 0)
+    if(timeCount >= 4 && g_NoticeList.getsize() == 0)
     {
         timerStay->stop();
         timerClose->start(200);
@@ -131,6 +131,7 @@ void Notice::enterEvent(QEvent *)
 }
 
 void Notice::leaveEvent(QEvent *)
+
 {
     isEnter = false;
 }

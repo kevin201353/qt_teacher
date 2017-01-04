@@ -12,6 +12,7 @@ QString g_xmldata;
 QMutex g_mutex;
 extern QMap<QString, QObject *> g_mapObject;
 extern MyQList   g_NoticeList;
+extern NetConfig g_config;
 Thread::Thread()
 {
     m_stopped = false;
@@ -141,8 +142,8 @@ void classThread::run()
 
 void classThread::processdata()
 {
-    QString url = HTTP_URL_HEAD;
-    url += SERVICE_ADDRESS;
+    QString url = g_config.protocol;
+    url += g_config.addr;
     url += "/service/desktops/classinfo";
     //m_strMac = "00:1a:4a:16:01:57";
     QString data = "vmMac=";

@@ -45,7 +45,7 @@ struct NetConfig {
 };
 
 #define   HTTP_URL_HEAD  "http://"
-#define   SERVICE_ADDRESS  "192.168.110.243"
+#define   SERVICE_ADDRESS  "192.168.0.164:9090"
 
 extern QMap<QString, QObject *> g_mapObject;
 typedef void (*MsgCallBackFun)(struct ReportMsg msg);

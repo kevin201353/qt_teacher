@@ -11,6 +11,7 @@
 
 extern QList<StruInfo> g_stu2List;
 extern QList<StruInfo> g_handupList;
+extern NetConfig g_config;
 //QMutex g_mutexlist;
 stulist::stulist(QWidget *parent) :
     QWidget(parent),
@@ -86,7 +87,7 @@ void stulist::settype(short ntype)
     pthread->settype("stu", ntype);
     pdataThread->settype("stu", ntype);
     QList<QString> msglist;
-    QString str = HTTP_URL_HEAD;
+    QString str = g_config.protocol;
     str += m_addrserver;
     if (ntype == 0)
     {

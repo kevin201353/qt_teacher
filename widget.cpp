@@ -19,15 +19,15 @@
 #define FTP_PATH "C:\\ftp_upload\\"
 
 QMap<QString, QObject *> g_mapObject;
-//NetConfig g_config;
+NetConfig g_config;
 MyQList   g_NoticeList;
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
 {
     //读取网络配置文件
-    //StreamParseXml netxl;
-    //netxl.readNetConfig("netconfig.xml", &g_config);
+    StreamParseXml netxl;
+    netxl.readNetConfig("netconfig.xml", &g_config);
     ui->setupUi(this);
     //setAttribute(Qt::WA_TranslucentBackground, true);
     setWindowFlags( Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
@@ -64,7 +64,7 @@ Widget::Widget(QWidget *parent) :
     g_mylog.open();
     m_strMac = getHostMacAddress().toLower();
     stulistWidget->setmac(m_strMac);
-    stulistWidget->setaddress(SERVICE_ADDRESS);
+    stulistWidget->setaddress(g_config.addr);
     stulistWidget->setWidget(this);
 
     ui->btn_broadcast->setToolTip("演示");
@@ -153,11 +153,10 @@ void Widget::on_raiseHandPushButton_clicked()
 void Widget::exit_widget()
 {
     //MESSAGEBOX("this is exit_button.");
-    QString url = HTTP_URL_HEAD;
-    url += SERVICE_ADDRESS;
+    QString url = g_config.protocol;
+    url += g_config.addr;
     url += "/service/classes/tec_exit_desktop";
     QString data;
-    //m_strMac = "00:1a:4a:16:01:57";
     data = "vmMac=";
     data += m_strMac;
     myHttp *http = new myHttp;
@@ -190,7 +189,7 @@ void Widget::exit_widget()
              writeLogFile(QtDebugMsg, "send exit teacher terminal request failed 2222.");
         }
     }//if
-    close();  //test
+    //close();  //test
     //qApp->exit();
 }
 
@@ -220,11 +219,10 @@ QString Widget::getHostMacAddress()
 void Widget::on_demo_clicked()
 {
     //MESSAGEBOX("this is demo.", this);
-    QString url = HTTP_URL_HEAD;
-    url += SERVICE_ADDRESS;
+    QString url = g_config.protocol;
+    url += g_config.addr;
     url += "/service/classes/show";
     QString data;
-    //m_strMac = "00:1a:4a:16:01:57";
     data = "vmMac=";
     data += m_strMac;
     data += "&";
@@ -286,11 +284,9 @@ void Widget::on_demo_clicked()
 
 void Widget::getclassinfo()
 {
-    QString url = HTTP_URL_HEAD;
-    url += SERVICE_ADDRESS;
+    QString url = g_config.protocol;
+    url += g_config.addr;
     url += "/service/desktops/classinfo";
-    //url += "/service/classes/classinfo";  //test
-    //m_strMac = "00:1a:4a:16:01:57";
     QString data = "vmMac=";
     data += m_strMac;
     myHttp http;
